@@ -1,0 +1,205 @@
+<!-- 
+======================================================================
+EDITING INSTRUCTIONS (FOR HUMAN & AI DEVELOPERS)
+======================================================================
+1. SINGLE SOURCE OF TRUTH: Do not duplicate design goals, criteria, 
+   or audit logs in multiple places within this document.
+2. DESIGN CRITERIA: Located in the JS 'MODAL_PAGES.design' string.
+3. AUDIT LOG: Located in the JS 'AUDIT_LOG_ENTRIES' array. 
+   Append new entries to this array for every structural update.
+4. PARKING LOT: Located in the JS 'MODAL_PAGES.parking' string.
+======================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Holographic Base Template v1.0</title>
+    <style>
+        /* CENTRALIZED DESIGN VARIABLES */
+        :root {
+            --bg-base: #050b14;
+            --holo-cyan: #00f3ff;
+            --holo-purple: #b026ff;
+            --holo-green: #00ff66;
+            --holo-blue: #3b82f6;
+            --holo-red: #ff003c;
+            --holo-yellow: #f9e2af;
+            --holo-pink: #f38ba8;
+            --glass-bg: rgba(10, 20, 35, 0.65);
+            --glass-border: rgba(0, 243, 255, 0.2);
+            --panel-bg: rgba(0, 0, 0, 0.5);
+            --text-muted: #888;
+            --text-main: #fff;
+            --ui-scale: 1.0; 
+        }
+
+        /* BASE STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body { background-color: var(--bg-base); background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px); background-size: 20px 20px; color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; overflow-x: hidden; }
+
+        /* TOP BAR & CLOCK */
+        .top-bar { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .sys-clock { color: var(--holo-cyan); background: rgba(0, 243, 255, 0.1); padding: 5px 15px; border: 1px solid var(--holo-cyan); border-radius: 4px; font-size: 0.9rem; text-shadow: 0 0 5px var(--holo-cyan); box-shadow: 0 0 10px rgba(0, 243, 255, 0.1); }
+        .app-menu-btn { background: rgba(176, 38, 255, 0.1); border: 1px solid var(--holo-purple); color: var(--holo-purple); font-weight: bold; width: 35px; height: 35px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s; box-shadow: 0 0 10px rgba(176, 38, 255, 0.2); }
+        .app-menu-btn:hover { background: rgba(176, 38, 255, 0.3); box-shadow: 0 0 15px var(--holo-purple); }
+
+        /* MAIN HUD CONTAINER */
+        .hud-container { width: 100%; max-width: 600px; background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 0 30px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 243, 255, 0.05); display: flex; flex-direction: column; gap: 1.2rem; }
+        h2 { text-align: center; color: var(--holo-cyan); text-transform: uppercase; letter-spacing: 2px; font-size: 1.4rem; text-shadow: 0 0 10px var(--holo-cyan); margin-bottom: 0.2rem; }
+
+        /* CONTENT SHELL PLACEHOLDER */
+        .content-shell { background: rgba(0,0,0,0.4); border: 1px dashed #333; border-radius: 8px; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+        
+        .scale-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid #333;}
+        .scale-btn { background: transparent; border: 1px solid var(--holo-cyan); color: var(--holo-cyan); width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; }
+        .scale-btn:hover { background: rgba(0, 243, 255, 0.2); }
+        .scale-label { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+
+        /* APP MODALS */
+        .sys-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); z-index: 2000; padding: 20px; align-items: center; justify-content: center; }
+        .sys-modal-content { background: #0a1122; border: 1px solid var(--holo-cyan); border-radius: 12px; width: 100%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0, 243, 255, 0.2); overflow: hidden; position: relative; }
+        .sys-modal-header { background: rgba(0, 243, 255, 0.1); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); z-index: 10; }
+        .sys-modal-title { color: var(--holo-cyan); font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
+        .close-btn { background: transparent; border: none; color: var(--holo-cyan); font-size: 1.5rem; cursor: pointer; }
+        .sys-modal-body { padding: 20px; overflow-y: auto; color: #ddd; font-size: 0.9rem; line-height: 1.5; z-index: 5; }
+        .menu-list-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 10px; border-radius: 6px; text-align: left; cursor: pointer; text-transform: uppercase; font-weight: bold; transition:0.2s;}
+        .menu-list-btn:hover { background: rgba(0, 243, 255, 0.1); border-color: var(--holo-cyan); color: var(--holo-cyan); }
+
+        /* CONTROL ROOM DASHBOARD GAUGES */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .dash-card { background: rgba(0,0,0,0.4); border: 1px solid #333; border-radius: 8px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; }
+        .dash-card:hover { background: rgba(0, 243, 255, 0.05); border-color: var(--holo-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.1); }
+        .gauge-circle { position: relative; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; background: #111; box-shadow: inset 0 0 10px #000, 0 0 10px var(--g-color); }
+        .gauge-circle::before { content: ''; position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border-radius: 50%; background: conic-gradient(var(--g-color) var(--g-pct), #222 var(--g-pct)); z-index: -1; }
+        .gauge-inner { width: 54px; height: 54px; background: #0a1122; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 0.9rem; box-shadow: inset 0 0 8px rgba(0,0,0,0.8);}
+        .dash-title { font-size: 0.75rem; color: #ccc; text-align: center; text-transform: uppercase; font-weight: bold; }
+
+        /* AUDIT LOG STYLES */
+        .audit-entry { background: rgba(0,0,0,0.3); border-left: 3px solid var(--holo-cyan); padding: 8px 10px; margin-bottom: 10px; border-radius: 0 6px 6px 0; font-size: 0.8rem; }
+        .audit-title { color: var(--holo-cyan); font-weight: bold; margin-bottom: 2px; }
+
+        ::-webkit-scrollbar { height: 6px; width: 6px;}
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px;}
+        ::-webkit-scrollbar-thumb { background: var(--holo-cyan); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="sys-clock" id="clock">SYS.TIME: 00:00:00</div>
+        <button class="app-menu-btn" onclick="openSysModal('mainMenu')">?</button>
+    </div>
+
+    <div class="hud-container">
+        <h2>New App Module</h2>
+
+        <div class="content-shell">
+            [ Application UI and Logic Goes Here ]
+        </div>
+        
+        <div class="scale-controls">
+            <button class="scale-btn" onclick="adjustScale(-0.1)">-</button>
+            <span class="scale-label">UI Calibration</span>
+            <button class="scale-btn" onclick="adjustScale(0.1)">+</button>
+        </div>
+    </div>
+
+    <!-- UNIVERSAL MODAL SYSTEM -->
+    <div class="sys-modal-overlay" id="appModalOverlay" onclick="handleModalClick(event)">
+        <div class="sys-modal-content" id="appModalContent"></div>
+    </div>
+
+    <script>
+        // --- BASE SYSTEM LOGIC ---
+        setInterval(() => { document.getElementById('clock').innerText = `SYS.TIME: ${new Date().toLocaleTimeString('en-US', { hour12: false })}`; }, 1000);
+
+        let currentScale = 1.0;
+        function adjustScale(amount) {
+            currentScale += amount;
+            if (currentScale < 0.3) currentScale = 0.3;
+            if (currentScale > 1.5) currentScale = 1.5;
+            document.documentElement.style.setProperty('--ui-scale', currentScale);
+        }
+
+        // --- MODAL ENGINE & CONTENT ---
+        const modalOverlay = document.getElementById('appModalOverlay');
+        const modalContent = document.getElementById('appModalContent');
+
+        function handleModalClick(event) { if(event.target === modalOverlay) closeSysModal(); }
+        function closeSysModal() { modalOverlay.style.display = 'none'; }
+
+        // AUDIT LOG (Append items here as the app evolves)
+        const AUDIT_LOG_ENTRIES = [
+            { id: "Req 01 / Rep 01", title: "App Initialization", desc: "Base template created. Awaiting primary logic configuration." }
+        ];
+        let auditLogHTML = AUDIT_LOG_ENTRIES.map(e => `<div class="audit-entry"><div class="audit-title">${e.id}: ${e.title}</div><div>${e.desc}</div></div>`).join('');
+
+        const MODAL_PAGES = {
+            mainMenu: `
+                <div class="sys-modal-header"><span class="sys-modal-title">System Menu</span><button class="close-btn" onclick="closeSysModal()">×</button></div>
+                <div class="sys-modal-body">
+                    <button class="menu-list-btn" onclick="openSysModal('about')">About & App Health</button>
+                    <button class="menu-list-btn" onclick="openSysModal('audit')">Conversation Audit Log [v1.0]</button>
+                    <button class="menu-list-btn" onclick="openSysModal('design')">Design Criteria & Flow</button>
+                    <button class="menu-list-btn" onclick="openSysModal('parking')">Parking Lot (Roadmap)</button>
+                </div>
+            `,
+            audit: `
+                <div class="sys-modal-header"><span class="sys-modal-title">Chat Audit Log</span><button class="close-btn" onclick="openSysModal('mainMenu')">←</button></div>
+                <div class="sys-modal-body">
+                    <p style="font-size:0.8rem; color:#888; text-align:center; margin-bottom: 10px;">Chronological feature ledger of all communication turns.</p>
+                    ${auditLogHTML}
+                </div>
+            `,
+            about: `
+                <div class="sys-modal-header"><span class="sys-modal-title">About & Health</span><button class="close-btn" onclick="openSysModal('mainMenu')">←</button></div>
+                <div class="sys-modal-body">
+                    <div style="text-align:center; padding: 15px; background: linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(176, 38, 255, 0.05)); border: 1px solid var(--holo-cyan); border-radius: 12px; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);">
+                        <div style="font-size: 0.7rem; color: var(--holo-cyan); letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase;">/// Lead Architect ///</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); letter-spacing: 1px; margin-bottom: 5px;">ERIC J. SMITH</div>
+                        <div style="font-size: 0.9rem; color: var(--holo-green); text-shadow: 0 0 8px var(--holo-green); margin-bottom: 8px; font-weight: bold;">⚙️ Senior Systems & Automation Engineer ⚙️</div>
+                        <div style="font-size: 0.8rem; font-weight: bold;"><span style="color: #ff4b4b;">INDIANA</span><span style="color: #fff; margin: 0 5px;">//</span><span style="color: #ff4b4b;">U</span><span style="color: #fff;">S</span><span style="color: #3b82f6;">A</span></div>
+                    </div>
+                    <div style="text-align:center; margin-top: 15px; font-size: 0.75rem; color: #888; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px solid #333;">
+                        <span style="letter-spacing: 1px; text-transform: uppercase;">In Collaboration With</span><br>
+                        <span style="font-family: monospace; font-size: 1.1rem; font-weight: bold; color: var(--holo-cyan); text-shadow: 0 0 8px var(--holo-cyan); display: inline-block; margin: 5px 0;">⟁ GEMINI 3.1 PRO ⟁</span><br>
+                        <span style="display:inline-block; margin-top: 5px; font-style: italic; color: var(--holo-purple); text-shadow: 0 0 8px var(--holo-purple); letter-spacing: 0.5px;">◈ Primary Designation: The Iron Scribe of the Endless Vigil ◈</span>
+                    </div>
+                    <hr style="border:1px solid #222; margin: 20px 0;">
+                    <h3 style="color:var(--holo-cyan); text-align:center;">Control Room: App Health</h3>
+                    <div class="dashboard-grid">
+                        <div class="dash-card" style="--g-color: var(--holo-cyan); --g-pct: 10%;"><div class="gauge-circle"><div class="gauge-inner">-- KB</div></div><div class="dash-title">File Size</div></div>
+                        <div class="dash-card" style="--g-color: var(--holo-purple); --g-pct: 10%;"><div class="gauge-circle"><div class="gauge-inner">--</div></div><div class="dash-title">Lines of Code</div></div>
+                    </div>
+                </div>
+            `,
+            design: `
+                <div class="sys-modal-header"><span class="sys-modal-title">Design Criteria</span><button class="close-btn" onclick="openSysModal('mainMenu')">←</button></div>
+                <div class="sys-modal-body">
+                    <p style="color:var(--holo-cyan); margin-bottom: 10px; text-align:center;"><strong>Current Constraints & Architecture</strong></p>
+                    <ul style="margin-top: 10px; margin-left: 15px; font-size: 0.85rem;">
+                        <li style="margin-bottom: 5px;">Strict Single-file HTML build. No external CSS/JS dependencies.</li>
+                        <li style="margin-bottom: 5px;">9:16 / 9:20 mobile portrait layout optimization.</li>
+                        <li style="margin-bottom: 5px;">Deep inset container padding with negative margins to prevent UI overflow clipping.</li>
+                        <li style="margin-bottom: 5px;">Universal modal overlay system triggered via JavaScript strings.</li>
+                    </ul>
+                </div>
+            `,
+            parking: `
+                <div class="sys-modal-header"><span class="sys-modal-title">Parking Lot (Roadmap)</span><button class="close-btn" onclick="openSysModal('mainMenu')">←</button></div>
+                <div class="sys-modal-body">
+                    <p style="color:var(--holo-purple); margin-bottom: 10px; text-align:center;"><strong>Future Roadmap & Pending Integrations</strong></p>
+                    <ul style="margin-top: 10px; margin-left: 15px; font-size: 0.85rem;">
+                        <li style="margin-bottom: 5px;">Awaiting core application logic...</li>
+                        <li style="margin-bottom: 5px;"><b>PWA Integration (Progressive Web App):</b> Adds a Web Manifest and Service Worker cache so this single HTML file can be installed directly to mobile home screens and run offline.</li>
+                    </ul>
+                </div>
+            `
+        };
+
+        function openSysModal(pageId) { modalContent.innerHTML = MODAL_PAGES[pageId]; modalOverlay.style.display = 'flex'; }
+    </script>
+</body>
+</html>
